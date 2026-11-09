@@ -1,10 +1,10 @@
+
 // =====================================================
-// EXPERIMENT 1D
-// BLE SERIAL
+// EXPERIMENT 1E - BLE COMMUNICATION
+// 12 SERVO VERSION
 // =====================================================
 
-
-// SAME UUIDs AS WORKING EXPERIMENT 1E
+// SAME UUIDs AS ORIGINAL WORKING EXPERIMENT
 
 const serviceUuid =
   "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
@@ -15,7 +15,6 @@ const txCharacteristic =
 const rxCharacteristic =
   "6e400003-b5a3-f393-e0a9-e50e24dcca9e";
 
-
 let myCharacteristicRx;
 let myCharacteristicTx;
 
@@ -25,33 +24,23 @@ let bleConnected = false;
 
 let connectButton;
 
-
 // =====================================================
 // BLE SETUP
 // =====================================================
 
 function bleSetup() {
 
-  myBLE =
-    new p5ble();
-
+  myBLE = new p5ble();
 
   connectButton =
-    createButton(
-      "Connect BLE"
-    );
+    createButton("Connect BLE");
 
-
-  connectButton.id(
-    "connectBLE"
-  );
-
+  connectButton.id("connectBLE");
 
   connectButton.mousePressed(
     connectAndStartNotify
   );
 }
-
 
 // =====================================================
 // CONNECT
@@ -59,17 +48,13 @@ function bleSetup() {
 
 function connectAndStartNotify() {
 
-  console.log(
-    "CONNECT PRESSED"
-  );
-
+  console.log("CONNECT PRESSED");
 
   myBLE.connect(
     serviceUuid,
     gotCharacteristics
   );
 }
-
 
 // =====================================================
 // CHARACTERISTICS
@@ -87,15 +72,14 @@ function gotCharacteristics(
       error
     );
 
+    bleConnected = false;
     return;
   }
-
 
   console.log(
     "GOT CHARACTERISTICS:",
     characteristics.length
   );
-
 
   for (
     let i = 0;
@@ -108,8 +92,7 @@ function gotCharacteristics(
       characteristics[i].uuid
     );
 
-
-    // ESP32 -> PHONE
+    // ESP32 -> iPad
 
     if (
       rxCharacteristic ==
@@ -119,7 +102,6 @@ function gotCharacteristics(
       myCharacteristicRx =
         characteristics[i];
 
-
       myBLE.startNotifications(
         myCharacteristicRx,
         handleNotifications,
@@ -127,8 +109,7 @@ function gotCharacteristics(
       );
     }
 
-
-    // PHONE -> ESP32
+    // iPad -> ESP32
 
     else if (
       txCharacteristic ==
@@ -140,36 +121,23 @@ function gotCharacteristics(
     }
   }
 
+  if (myCharacteristicTx) {
 
-  // ===================================================
-  // CONNECTION COMPLETE
-  // ===================================================
-
-  if (
-    myCharacteristicTx
-  ) {
-
-    bleConnected =
-      true;
-
+    bleConnected = true;
 
     connectButton.html(
       "BLE Connected"
     );
 
-
     connectButton.addClass(
       "connected"
     );
-
 
     console.log(
       "BLE FULLY CONNECTED"
     );
 
-  }
-
-  else {
+  } else {
 
     console.log(
       "TX CHARACTERISTIC NOT FOUND"
@@ -177,59 +145,43 @@ function gotCharacteristics(
   }
 }
 
-
 // =====================================================
 // RECEIVE FROM ESP32
 // =====================================================
 
 function handleNotifications(data) {
 
-  console.log(
-    "ESP32:",
-    data
-  );
+  console.log("ESP32:", data);
 }
-
 
 // =====================================================
 // SEND SERVO COMMAND
 // =====================================================
 
-function sendServoCommand(
-  servoNumber
-) {
+function sendServoCommand(servoNumber) {
 
   if (
     !bleConnected ||
     !myCharacteristicTx
   ) {
 
-    console.log(
-      "BLE NOT READY"
-    );
-
+    console.log("BLE NOT READY");
     return;
   }
 
-
   let message =
-    String(
-      servoNumber
-    );
-
+    String(servoNumber);
 
   myBLE.write(
     myCharacteristicTx,
     message
   );
 
-
   console.log(
     "BLE SENT:",
     message
   );
 }
-
 
 // =====================================================
 // RESET PHYSICAL SERVOS
@@ -242,21 +194,14 @@ function sendResetCommand() {
     !myCharacteristicTx
   ) {
 
-    console.log(
-      "BLE NOT READY"
-    );
-
+    console.log("BLE NOT READY");
     return;
   }
-
 
   myBLE.write(
     myCharacteristicTx,
     "R"
   );
 
-
-  console.log(
-    "BLE SENT: R"
-  );
+  console.log("BLE SENT: R");
 }
